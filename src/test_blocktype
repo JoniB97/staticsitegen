@@ -1,0 +1,67 @@
+import unittest
+from blocktype import BlockType, block_to_block_type, markdown_to_blocks
+
+class TestBlockType(unittest.TestCase):
+
+    def test_ordered_list(self):
+        markdown = """1. First item
+2. Second item
+3. Third item"""
+        self.assertEqual(block_to_block_type(markdown), BlockType.ORDERED_LIST)
+
+    def test_blockquote(self):
+        markdown = """> This is a quote
+> Another line in the quote"""
+        self.assertEqual(block_to_block_type(markdown), BlockType.QUOTE)
+
+    def test_code_block(self):
+        markdown = """```
+print("Hello, world!")
+```"""
+        self.assertEqual(block_to_block_type(markdown), BlockType.CODE)
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_empty_input(self):
+        md = ""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, [])
+    
+    def test_only_whitespace_and_newlines(self):
+        md = "\n\n   \n\n\n  \n"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(blocks, [])
+
+    def test_blocks_with_extra_whitespace(self):
+        md = "   First block   \n\n   Second block with spaces   \n\n\n   Third block   "
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "First block",
+                "Second block with spaces",
+                "Third block",
+            ],
+        )
+
+if __name__ == "__main__":
+    unittest.main()

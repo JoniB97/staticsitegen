@@ -68,6 +68,17 @@ def split_nodes_link(old_nodes):
             new_nodes.append(TextNode(working_text, TextType.TEXT))
     return new_nodes
 
+def text_to_textnodes(text):
+    nodes = []
+    starting_node = [TextNode(text, TextType.TEXT)]
+    bold_nodes= split_nodes_delimiter(starting_node, "**", TextType.BOLD)
+    italic_nodes = split_nodes_delimiter(bold_nodes, "_", TextType.ITALIC)
+    code_nodes = split_nodes_delimiter(italic_nodes, "`", TextType.CODE)
+    image_nodes = split_nodes_link(code_nodes)
+    link_nodes = split_nodes_image(image_nodes)
+    nodes = link_nodes
+
+    return nodes
 
 def main():
     test_image = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"

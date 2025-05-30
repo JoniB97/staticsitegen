@@ -5,6 +5,7 @@ from functions import (
     extract_markdown_images,
     split_nodes_link,
     split_nodes_image,
+    text_to_textnodes,
 )
 
 from textnode import TextNode, TextType
@@ -185,6 +186,86 @@ class TestSplitNodes(unittest.TestCase):
         self.assertEqual(split_nodes_image(input_nodes), input_nodes)
         self.assertEqual(split_nodes_link(input_nodes), input_nodes)
 
+class TestTextToTextNodes(unittest.TestCase):
+    def test_plain_text(self):
+        text = "This is a plain text."
+        expected = [TextNode("This is a plain text.", TextType.TEXT)]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_bold_text(self):
+        text = "This is **bold** text."
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" text.", TextType.TEXT),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_italic_text(self):
+        text = "This is _italic_ text."
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text.", TextType.TEXT),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_code_text(self):
+        text = "This is `code` text."
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("code", TextType.CODE),
+            TextNode(" text.", TextType.TEXT),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_link_text(self):
+        text = "This is a [link](http://example.com)."
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "http://example.com"),
+            TextNode(".", TextType.TEXT),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_image_text(self):
+        text = "Here is an image ![alt](http://img.com/image.png)."
+        expected = [
+            TextNode("Here is an image ", TextType.TEXT),
+            TextNode("alt", TextType.IMAGE, "http://img.com/image.png"),
+            TextNode(".", TextType.TEXT),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_combined_formatting(self):
+        text = "**Bold** and _italic_ and `code` and a [link](http://x.com) with ![img](http://img.png)"
+        expected = [
+            TextNode("Bold", TextType.BOLD),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("code", TextType.CODE),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "http://x.com"),
+            TextNode(" with ", TextType.TEXT),
+            TextNode("img", TextType.IMAGE, "http://img.png"),
+        ]
+        self.assertEqual(text_to_textnodes(text), expected)
+
+    def test_unclosed_bold(self):
+        text = "This is **bold text."
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
+
+    def test_unclosed_italic(self):
+        text = "This is _italic text."
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
+
+    def test_unclosed_code(self):
+        text = "This is `code text."
+        with self.assertRaises(ValueError):
+            text_to_textnodes(text)
 
 
 if __name__ == "__main__":
